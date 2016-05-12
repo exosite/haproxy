@@ -3973,6 +3973,15 @@ char *ssl_sock_get_version(struct connection *conn)
 	return (char *)SSL_get_version(conn->xprt_ctx);
 }
 
+/* returns server name if client passed TLS SNI extension, NULL if not */
+char *ssl_sock_get_servername(struct connection *conn)
+{
+	if (!ssl_sock_is_ssl(conn))
+		return NULL;
+
+	return (char *)SSL_get_servername(conn->xprt_ctx, TLSEXT_NAMETYPE_host_name);
+}
+
 void ssl_sock_set_servername(struct connection *conn, const char *hostname)
 {
 #ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME

@@ -820,6 +820,11 @@ int make_proxy_line_v2(char *buf, int buf_len, struct server *srv, struct connec
 					ssl_tlv_len += make_tlv(&buf[ret+ssl_tlv_len], (buf_len - ret - ssl_tlv_len), PP2_TYPE_SSL_CN, cn_trash->len, cn_trash->str);
 				}
 			}
+			value = ssl_sock_get_servername(remote);
+			if (value) {
+				tlv->client |= PP2_CLIENT_SNI;
+				ssl_tlv_len += make_tlv(&buf[ret + ssl_tlv_len], (buf_len - ret-ssl_tlv_len), PP2_TYPE_SSL_SNI, strlen(value), value);
+			}
 		}
 		tlv->tlv.length_hi = (uint16_t)(ssl_tlv_len - sizeof(struct tlv)) >> 8;
 		tlv->tlv.length_lo = (uint16_t)(ssl_tlv_len - sizeof(struct tlv)) & 0x00ff;
