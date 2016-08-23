@@ -57,6 +57,7 @@ char *ssl_sock_get_servername(struct connection *conn);
 void ssl_sock_set_servername(struct connection *conn, const char *hostname);
 int ssl_sock_get_cert_used_sess(struct connection *conn);
 int ssl_sock_get_cert_used_conn(struct connection *conn);
+int ssl_sock_get_cert_sha1(struct connection *conn, struct chunk *out);
 int ssl_sock_get_remote_common_name(struct connection *conn, struct chunk *out);
 unsigned int ssl_sock_get_verify_result(struct connection *conn);
 #if (defined SSL_CTRL_SET_TLSEXT_STATUS_REQ_CB && !defined OPENSSL_NO_OCSP)

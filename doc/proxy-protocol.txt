@@ -531,6 +531,7 @@ The following types have already been registered for the <type> field :
         #define PP2_SUBTYPE_SSL_VERSION 0x21
         #define PP2_SUBTYPE_SSL_CN      0x22
         #define PP2_SUBTYPE_SSL_SNI     0x23
+        #define PP2_SUBTYPE_SSL_FP      0x24
         #define PP2_TYPE_NETNS          0x30
 
 
