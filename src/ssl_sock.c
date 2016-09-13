@@ -4055,16 +4055,15 @@ int ssl_sock_get_cert_used_conn(struct connection *conn)
 	return SSL_SOCK_ST_FL_VERIFY_DONE & conn->xprt_st ? 1 : 0;
 }
 
-/* Computes peer certificate's sha1 fingerprint into the chunk dest
+/* Extract peer certificate into the chunk dest
  * Returns
- *  the len of the extracted fingerprint
+ *  the len of the extracted peer cert
  *  or -1 on error case (i.e. no peer certificate)
  */
-int ssl_sock_get_cert_sha1(struct connection *conn, struct chunk *dest)
+int ssl_sock_get_remote_cert(struct connection *conn, struct chunk *dest)
 {
 	X509 *crt = NULL;
-	const EVP_MD *digest;
-	int result = -1;
+	int result;
 
 	if (!ssl_sock_is_ssl(conn))
 		return -1;
@@ -4074,8 +4073,7 @@ int ssl_sock_get_cert_sha1(struct connection *conn, struct chunk *dest)
 	if (!crt)
 		return -1;
 
-	digest = EVP_sha1();
-	X509_digest(crt, digest, (unsigned char *)dest->str, (unsigned int *)&dest->len);
+	result = ssl_sock_crt2der(crt, dest);
 
 	X509_free(crt);
 	return result;
@@ -5664,12 +5662,12 @@ static int srv_parse_send_proxy_cn(char **args, int *cur_arg, struct proxy *px, 
 	return 0;
 }
 
-/* parse the "send-proxy-v2-ssl-fp" server keyword */
-static int srv_parse_send_proxy_fp(char **args, int *cur_arg, struct proxy *px, struct server *newsrv, char **err)
+/* parse the "send-proxy-v2-ssl-cert" server keyword */
+static int srv_parse_send_proxy_cert(char **args, int *cur_arg, struct proxy *px, struct server *newsrv, char **err)
 {
 	newsrv->pp_opts |= SRV_PP_V2;
 	newsrv->pp_opts |= SRV_PP_V2_SSL;
-	newsrv->pp_opts |= SRV_PP_V2_SSL_FP;
+	newsrv->pp_opts |= SRV_PP_V2_SSL_CERT;
 	return 0;
 }
 
@@ -5983,7 +5981,7 @@ static struct srv_kw_list srv_kws = { "SSL", { }, {
 	{ "no-tls-tickets",        srv_parse_no_tls_tickets, 0, 0 }, /* disable session resumption tickets */
 	{ "send-proxy-v2-ssl",     srv_parse_send_proxy_ssl, 0, 0 }, /* send PROXY protocol header v2 with SSL info */
 	{ "send-proxy-v2-ssl-cn",  srv_parse_send_proxy_cn,  0, 0 }, /* send PROXY protocol header v2 with CN */
-	{ "send-proxy-v2-ssl-fp",  srv_parse_send_proxy_fp,  0, 0 }, /* send PROXY protocol header v2 with Fingerprint */
+	{ "send-proxy-v2-ssl-cert",srv_parse_send_proxy_cert,0, 0 }, /* send PROXY protocol header v2 with certificate */
 	{ "sni",                   srv_parse_sni,            1, 0 }, /* send SNI extension */
 	{ "ssl",                   srv_parse_ssl,            0, 0 }, /* enable SSL processing */
 	{ "verify",                srv_parse_verify,         1, 0 }, /* set SSL verify method */
