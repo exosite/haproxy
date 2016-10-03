@@ -337,6 +337,7 @@ struct proxy_hdr_v2 {
 #define PP2_TYPE_SSL_CN        0x22
 #define PP2_TYPE_SSL_SNI       0x23
 #define PP2_TYPE_SSL_CERT      0x24
+#define PP2_TYPE_SSL_FP        0x25
 #define PP2_TYPE_NETNS         0x30
 
 #define TLV_HEADER_SIZE      3

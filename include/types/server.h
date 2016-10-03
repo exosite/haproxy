@@ -105,6 +105,7 @@ enum srv_admin {
 #define SRV_PP_V2_SSL      0x0004        /* proxy protocol version 2 with SSL*/
 #define SRV_PP_V2_SSL_CN   0x0008        /* proxy protocol version 2 with SSL and CN*/
 #define SRV_PP_V2_SSL_CERT 0x0010        /* proxy protocol version 2 with SSL and Certificate*/
+#define SRV_PP_V2_SSL_FP   0x0020        /* proxy protocol version 2 with SSL and Certificate fingerprint */
 
 /* function which act on servers need to return various errors */
 #define SRV_STATUS_OK       0   /* everything is OK. */

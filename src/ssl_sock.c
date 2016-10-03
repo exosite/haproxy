@@ -4079,6 +4079,32 @@ int ssl_sock_get_remote_cert(struct connection *conn, struct chunk *dest)
 	return result;
 }
 
+/* Computes peer certificate's sha1 fingerprint into the chunk dest
+ * Returns
+ *  the len of the computed fingerprint
+ *  or -1 on error case (i.e. no peer certificate)
+ */
+int ssl_sock_get_cert_sha1(struct connection *conn, struct chunk *dest)
+{
+	X509 *crt = NULL;
+	const EVP_MD *digest;
+	int result;
+
+	if (!ssl_sock_is_ssl(conn))
+		return -1;
+
+	/* SSL_get_peer_certificate, it increase X509 * ref count */
+	crt = SSL_get_peer_certificate(conn->xprt_ctx);
+	if (!crt)
+		return -1;
+
+	digest = EVP_sha1();
+	X509_digest(crt, digest, (unsigned char *)dest->str, (unsigned int *)&dest->len);
+
+	X509_free(crt);
+	return dest->len;
+}
+
 /* returns result from SSL verify */
 unsigned int ssl_sock_get_verify_result(struct connection *conn)
 {
@@ -5671,6 +5697,15 @@ static int srv_parse_send_proxy_cert(char **args, int *cur_arg, struct proxy *px
 	return 0;
 }
 
+/* parse the "send-proxy-v2-ssl-fp" server keyword */
+static int srv_parse_send_proxy_fp(char **args, int *cur_arg, struct proxy *px, struct server *newsrv, char **err)
+{
+	newsrv->pp_opts |= SRV_PP_V2;
+	newsrv->pp_opts |= SRV_PP_V2_SSL;
+	newsrv->pp_opts |= SRV_PP_V2_SSL_FP;
+	return 0;
+}
+
 /* parse the "sni" server keyword */
 static int srv_parse_sni(char **args, int *cur_arg, struct proxy *px, struct server *newsrv, char **err)
 {
@@ -5982,6 +6017,7 @@ static struct srv_kw_list srv_kws = { "SSL", { }, {
 	{ "send-proxy-v2-ssl",     srv_parse_send_proxy_ssl, 0, 0 }, /* send PROXY protocol header v2 with SSL info */
 	{ "send-proxy-v2-ssl-cn",  srv_parse_send_proxy_cn,  0, 0 }, /* send PROXY protocol header v2 with CN */
 	{ "send-proxy-v2-ssl-cert",srv_parse_send_proxy_cert,0, 0 }, /* send PROXY protocol header v2 with certificate */
+	{ "send-proxy-v2-ssl-fp",  srv_parse_send_proxy_fp,  0, 0 }, /* send PROXY protocol header v2 with Fingerprint */
 	{ "sni",                   srv_parse_sni,            1, 0 }, /* send SNI extension */
 	{ "ssl",                   srv_parse_ssl,            0, 0 }, /* enable SSL processing */
 	{ "verify",                srv_parse_verify,         1, 0 }, /* set SSL verify method */
